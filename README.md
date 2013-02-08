@@ -1,4 +1,4 @@
 urban-data-challenge-sf
 =======================
 
-Urban Data Challenge SF
+This is a repository for data for the Urban Data Challenge SF google group.
