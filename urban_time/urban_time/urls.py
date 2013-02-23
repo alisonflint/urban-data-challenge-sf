@@ -5,6 +5,8 @@ from django.conf.urls import patterns, include, url
 # admin.autodiscover()
 
 urlpatterns = patterns('',
+    (r'^ajax/', include('ajax.urls')),
+    (r'', 'bus_distance.views.index'),
     # Examples:
     # url(r'^$', 'urban_time.views.home', name='home'),
     # url(r'^urban_time/', include('urban_time.foo.urls')),

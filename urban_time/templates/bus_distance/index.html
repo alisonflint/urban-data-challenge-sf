@@ -1,0 +1,20 @@
+<html>
+  <head>
+    <title>Test DJango AJAX</title>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script src="http://code.jquery.com/jquery-migrate-1.1.1.min.js"></script>
+  </head>
+  <body>
+    <h1>Hello!</h2>
+    <script type="text/javascript">
+      console.log($.post('/ajax/bus_distance/right_back_at_you.json', {
+          name: "Joe Stump",
+          age: 31
+      }));
+      d3.json("/static/routes.json", function(json) {
+        console.log(json);
+      });
+    </script>
+  </body>
+</html>
