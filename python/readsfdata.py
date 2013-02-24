@@ -48,8 +48,66 @@ def time2num(t):
 
 for ele in data:
 	if ele[hd['route']]=='1' and ele[hd['day']]=='1':    # route 1, day 1
-		print map(ele.__getitem__, (0, 1,7,9, 12, 15)), time2num(ele[15])
+		print map(ele.__getitem__, (hd['stop_seq'], hd['stop_id'], hd['day'], hd['route'], hd['trip_id'], hd['timestop'])), time2num(ele[15])
 
+stops=[]
+for ele in data[1:-1]:
+	if ele[hd['day']]=='1':    # route 1, day 1
+		stops.append(ele[hd['stop_id']]+'_'+ele[hd['route']])
+
+def uniqueItems(item):
+	items=[]
+	for ele in data[1:-1]:
+		items.append(ele[hd[item]])
+	items=list(set(items))
+	items.sort()
+	return items
+
+routes=uniqueItems('route')
+stops=uniqueItems('stop')
+trip_ids=uniqueItems('trip_id')
+
+
+#separating data by route
+databyroute={}
+for route in routes:
+	databyroute[route]=[]
+
+for ele in data[1:-1]:
+	route=ele[hd['route']]
+	databyroute[route].append(ele)
+
+
+def stopsForRoute(route_id):
+	items=[]
+	for ele in data[1:-1]:
+		if(ele[hd['route']]==route_id):
+			items.append(ele[hd['stop_id']])
+	items=list(set(items))
+	items.sort()
+	return items
+
+stops=list(set(stops))
+
+		print map(ele.__getitem__, (hd['stop_seq'], hd['stop_id'], hd['day'], hd['route'], hd['trip_id'], hd['timestop'])), time2num(ele[15])
+
+#find trip for route and day and time
+route='1'
+day='1'
+endtime=12*60*60
+def getTripsForRoute(route, day, endtime):
+	items=[]
+	for ele in databyroute[route]:
+		if(ele[hd['day']]==day and time2num(ele[15])<endtime):
+			items.append(ele[hd['trip_id']])
+	items=list(set(items))
+	items.sort()
+	return items
+
+routesArray={}
+for route in routes:
+	routesArray[route]={}
+	routesArray[route]['stop']=stopsForRoute(route)
 
 
 
