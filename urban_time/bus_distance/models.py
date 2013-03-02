@@ -1,9 +1,16 @@
 from django.db import models
 import json
+import random
 
 def computeDistance(stopid):
   print "computeDistance"
-  return ([0, 1, 2, 3, 4], [10, 5, 15, 16, 50])
+  return ([5196, 7447, 7316, 5692, 5693],
+          [[1], [2], [3], [4], [5]],
+          [random.randint(0, 3600),
+           random.randint(0, 3600),
+           random.randint(0, 3600),
+           random.randint(0, 3600),
+           random.randint(0, 3600)])
 
 # 1) Load the initial matrix
 # 2) On a call, filter the time frames we care about and then re-average everything
