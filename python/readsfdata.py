@@ -1,25 +1,3 @@
-# 0 STOP_SEQ
-# 1 STOP_ID
-# 2 STOP_NAME
-# 3 ON
-# 4 OFF
-# 5 LOAD
-# 6 MO
-# 7 DAY
-# 8 YR
-# 9 ROUTE
-# 10 LATITUDE
-# 11 LONGITUDE
-# 12 TRIP_ID
-# 13 DIR
-# 14 VEHNO
-# 15 TIMESTOP
-# 16 TIMEDOORCLOSE
-# 17 TIMEPULLOUT
-# 18 TRIPCODE
-# 19 TRIPSTOP
-# 20 DOORDWELL
-# 21 WAITDWELL
 
 import csv
 import time
@@ -60,6 +38,16 @@ for ele in data[1:-1]:
 	if ele[hd['day']]=='1':    # route 1, day 1
 		stops_route.append(ele[hd['stop_id']]+'_'+ele[hd['route']])
 
+stop_route_pairs = map(lambda x: x.split('_'), stops_route)
+
+stops_array={}
+for ele in stop_route_pairs:	
+	if ele[0] in stops_array:
+		stops_array[ele[0]].append(ele[1])
+		stops_array[ele[0]]=list(set(stops_array[ele[0]]))
+	else:
+		stops_array[ele[0]]=[ele[1]]
+
 #finding uniq route, stop, trip_id, etc
 def uniqueItems(item):
 	items=[]
@@ -77,17 +65,17 @@ info={}
 info['routes']=routes
 info['stop_ids']=stop_ids
 info['trip_ids']=trip_ids
+info['stops_info']=stops_array    			#routes in each stop
 
 
 #separating data by route for speed
 databyroute={}
-for route in routes:
+for route in info['routes']:
 	databyroute[route]=[]
 
 for ele in data[1:-1]:
 	route=ele[hd['route']]
 	databyroute[route].append(ele)
-
 
 #finding stops for given route
 def stopsForRoute(route_id):
@@ -119,11 +107,11 @@ starttime=0
 
 # now we calculating the master data set to be saved later
 routesArray={}
-for route in routes:
+for route in info['routes']:
 	routesArray[route]={}
 	routesArray[route]['stop']=stopsForRoute(route)
 
-for route in routes:
+for route in info['routes']:
 	routesArray[route]['trip']=getTripsForRoute(route, day, starttime, endtime)
 
 def getTripTime(trip_id, route):
@@ -164,16 +152,54 @@ def getRouteTimeMatrix(route):
 		report[s0][s0]=0
 	return report
 
-for route in routes:
-	routesArray[route]['timeMatrix']=getRouteTimeMatrix(route)
+for route in info['routes']:
+		routesArray[route]['timeMatrix']=getRouteTimeMatrix(route)
 
-f=open('info.json', 'w')
-f.write(json.dumps(info))
-f.close()
+# f=open('info.json', 'w')
+# f.write(json.dumps(info))
+# f.close()
 
-f=open('day_1_hour_0_12.json', 'a')
-f.write(json.dumps(routesArray))
-f.close()
+# f=open('day_1_hour_0_12.json', 'a')
+# f.write(json.dumps(routesArray))
+# f.close()
+
+# Interface
+# day='3'
+# endtime=12*60*60
+# starttime=0
+# set_time_range(day, starttime, endtime)
+# stop_id = '3377'
+# get_reach_for_stop('3377')
+
+# for stop_id in info['stop_ids']:
+# 	print stop_id
+# 	get_reach_for_stop(stop_id)
+
+# get_reach_for_stop('3096')
+
+def get_routes_for_stop(stop_id):
+	if stop_id in info['stops_info']:
+		return info['stops_info'][stop_id]
+	else:
+		return []
+
+def set_time_range(day, starttime, endtime):
+	for route in routes:
+		routesArray[route]['trip']=getTripsForRoute(route, day, starttime, endtime)
+	for route in routes:
+		routesArray[route]['timeMatrix']=getRouteTimeMatrix(route)
+	return "done"
+
+def get_reach_for_stop(stop_id):
+	route_list = get_routes_for_stop(stop_id)
+	report={}
+	for route in route_list:
+		reaches = dict((k, v) for k, v in routesArray[route]['timeMatrix'][stop_id].items() if v>0)
+		report = dict(report.items()+reaches.items())
+	return sorted(report.iteritems(), key=lambda x: x[1])
+
+
+		
 
 
 
