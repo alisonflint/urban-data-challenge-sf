@@ -12,4 +12,4 @@ def computeDistance(stopid):
 
   return (stop_ids, travel_times)
 
-stop_distance_model = StopDistance()
+stop_distance_model = StopDistance('bus_distance/static/passenger-count.csv')

@@ -41,11 +41,11 @@ class DistanceMatrix():
       self.time_matrix[s0][s0]=0
 
 class StopDistance:
-  def __init__(self):
+  def __init__(self, data_file):
     # reading data from csv
     self.data=[]
     i=0
-    with open('bus_distance/static/passenger-count.csv', 'rb') as csvfile:
+    with open(data_file, 'rb') as csvfile:
       spamreader = csv.reader(csvfile, delimiter=',')
       for row in spamreader:
         self.data.append([])
@@ -167,3 +167,7 @@ class StopDistance:
       reaches = dict((k, v) for k, v in time_matrix[stop_id].items() if v>0)
       report = dict(report.items()+reaches.items())
     return sorted(report.iteritems(), key=lambda x: x[1])
+
+if __name__ == "__main__":
+  import sys
+  stop_distance = StopDistance(sys.argv[1])
