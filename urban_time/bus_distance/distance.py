@@ -1,3 +1,13 @@
+# Example calls:
+# stop_distance_model=distance.StopDistance(fname)
+
+# day = 1; starttime=0; endtime=12*60*60
+# stop_distance_model.set_time_range(day, starttime, endtime)  
+
+## depth is number of transition stops allowed
+# start_stopID = 3377; depth=2; transition_time=5*60   
+# stop_distance_model.reach_search(start_stopID, depth, transition_time)
+
 import csv
 import json
 import numpy
@@ -16,8 +26,8 @@ class DistanceMatrix():
     self.updateTimeMatrix()
 
   def updateTimeMatrix(self):
-    TIMING_triptime=0
-    TIMING_matrix=0
+    # TIMING_triptime=0
+    # TIMING_matrix=0
     timeMatrix={}
     self.time_matrix = {}
     for s0 in self.stop:
@@ -27,15 +37,15 @@ class DistanceMatrix():
         self.time_matrix[s0][s1]=[]
         timeMatrix[s0][s1]=[]
     for trip_id in self.trip:
-      tc0 = time.time()
+      # tc0 = time.time()
       triptime = self.distance_computer.getTripTime(trip_id, self.route)
-      tc1 = time.time(); TIMING_triptime+=(tc1-tc0); tc0=tc1
+      # tc1 = time.time(); TIMING_triptime+=(tc1-tc0); tc0=tc1
       for t0 in triptime:
         for t1 in triptime:
           diff = t1[1]-t0[1]
           if (diff>0):
             timeMatrix[t0[0]][t1[0]].append(diff)
-      tc1 = time.time(); TIMING_matrix+=(tc1-tc0); tc0=tc1
+      # tc1 = time.time(); TIMING_matrix+=(tc1-tc0); tc0=tc1
     for s0 in self.stop:
       for s1 in self.stop:
         arr=timeMatrix[s0][s1]
@@ -45,8 +55,8 @@ class DistanceMatrix():
           self.time_matrix[s0][s1]=numpy.median(arr)
     for s0 in self.stop:
       self.time_matrix[s0][s0]=0
-    print "triptime uses "+str(TIMING_triptime)
-    print "matrix uses " + str(TIMING_matrix)
+    # print "triptime uses "+str(TIMING_triptime)
+    # print "matrix uses " + str(TIMING_matrix)
 
 class StopDistance:
   def __init__(self, data_file):
@@ -99,31 +109,36 @@ class StopDistance:
     self.trip_ids = list(self.trip_ids)
     self.stops_info = stops_array
 
-    #separating data by route for speed
+    #separating data by route then by trip for speed
     self.databyroute={}
     for route in self.routes:
-      self.databyroute[route]=[]
+      self.databyroute[route]={}
 
     for ele in self.data[1:-1]:
       route=int(ele[self.hd['route']])
-      self.databyroute[route].append(ele)
+      trip = int(ele[self.hd['trip_id']])
+      if trip in self.databyroute[route]:
+        self.databyroute[route][trip].append(ele)
+      else:
+        self.databyroute[route][trip] = [ele]
 
   # find stops for given route
   def stopsForRoute(self, route_id):
     items=[]
-    for ele in self.databyroute[route_id]:
-      if(int(ele[self.hd['route']])==route_id):
-        items.append(int(ele[self.hd['stop_id']]))
+    for trip in self.databyroute[route_id]:
+      for ele in self.databyroute[route_id][trip]:
+        if(int(ele[self.hd['route']])==route_id):
+          items.append(int(ele[self.hd['stop_id']]))
     items=list(set(items))
     items.sort()
     return items
 
+  # return [stop, time] list sorted ascending order
   def getTripTime(self, trip_id, route):
     triptime=[]
-    for ele in self.databyroute[route]:
-      if int(ele[self.hd['trip_id']])==trip_id:
-        triptime.append([int(ele[self.hd['stop_id']]), self.time2num(ele[15])])
-    return triptime
+    for ele in self.databyroute[route][trip_id]:
+      triptime.append([int(ele[self.hd['stop_id']]), self.time2num(ele[self.hd['timestop']])])
+    return sorted(triptime, key=lambda x: x[1])
 
   def time2num(self, t):
     tarray=map(int, t.split(':'))
@@ -132,11 +147,12 @@ class StopDistance:
   #find trips for route and day and time
   def getTripsForRoute(self, route, day, starttime, endtime):
     items=[]
-    for ele in self.databyroute[route]:
-      if (ele[self.hd['day']]==str(day) and
-          self.time2num(ele[15])>=starttime and
-          self.time2num(ele[15])<endtime):
-        items.append(int(ele[self.hd['trip_id']]))
+    for trip_id in self.databyroute[route]:
+      for ele in self.databyroute[route][trip_id]:
+        if (ele[self.hd['day']]==str(day) and
+            self.time2num(ele[15])>=starttime and
+            self.time2num(ele[15])<endtime):
+            items.append(int(ele[self.hd['trip_id']]))
     items=list(set(items))
     items.sort()
     return items
@@ -149,7 +165,7 @@ class StopDistance:
 
   #interface function, time unit is second
   def set_time_range(self, day, starttime, endtime):
-    print "enter set_time_range, updating routesArray"
+    # print "enter set_time_range, updating routesArray"
     self.routesArray={}
     for route in self.routes:
       self.routesArray[route] = DistanceMatrix(
@@ -169,6 +185,38 @@ class StopDistance:
       reaches = dict((k, v) for k, v in time_matrix[stop_id].items() if v>0)
       report = dict(report.items()+reaches.items())
     return sorted(report.iteritems(), key=lambda x: x[1])
+
+  # used for reach_search. don't call directly
+  def single_reach_from_stop(self, stop_id, starttime):
+    # global reached_routes, reached_stops, reach_time
+    route_list = self.get_routes_for_stop(stop_id)
+    # print route_list
+    route_list = list(set(route_list)-set(self.reached_routes))
+    self.reached_routes = list(set(route_list) | set(self.reached_routes)) #add new routes to the reached_routes list
+    reaches={}
+    for route in route_list:
+      this_reach = dict((k, v) for k, v in self.routesArray[route].time_matrix[stop_id].items() if v>0)
+      reaches = dict(reaches.items()+this_reach.items()) #each item : {stop: time}
+    for reach in reaches:
+      if not(reach in self.reached_stops):   # a new stop reached
+        self.reached_stops.append(reach)
+        self.reach_time.append([reach, reaches[reach]+starttime])
+    self.reach_time = sorted(self.reach_time, key=lambda x: x[1])
+
+  # depth is number of stops allowed.
+  def reach_search(self, starting_stop_id, depth, transition_time):
+    # global reached_routes, reached_stops, reach_time
+    self.reached_stops=[]
+    self.reached_routes=[]
+    self.reach_time=[]
+    self.reached_stops.append(starting_stop_id)
+    self.single_reach_from_stop(starting_stop_id, 0)
+    while (depth>0):
+      for reach in self.reach_time:
+        self.single_reach_from_stop(reach[0], 5*60)
+      depth -= 1
+    return self.reach_time
+
 
 if __name__ == "__main__":
   import sys
