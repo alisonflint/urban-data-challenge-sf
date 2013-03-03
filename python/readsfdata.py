@@ -101,9 +101,9 @@ def getTripsForRoute(route, day, starttime, endtime):
 
 # final out put area
 # constructing a master array to hold stops and trips for each route at given day and hour range
-day='1'
-endtime=12*60*60
-starttime=0
+# day='1'
+# endtime=12*60*60
+# starttime=0
 
 # now we calculating the master data set to be saved later
 routesArray={}
@@ -152,8 +152,8 @@ def getRouteTimeMatrix(route):
 		report[s0][s0]=0
 	return report
 
-for route in info['routes']:
-		routesArray[route]['timeMatrix']=getRouteTimeMatrix(route)
+# for route in info['routes']:
+# 		routesArray[route]['timeMatrix']=getRouteTimeMatrix(route)
 
 # f=open('info.json', 'w')
 # f.write(json.dumps(info))
@@ -171,27 +171,27 @@ for route in info['routes']:
 # stop_id = '3377'
 # get_reach_for_stop('3377')
 
-# for stop_id in info['stop_ids']:
-# 	print stop_id
-# 	get_reach_for_stop(stop_id)
+for stop_id in info['stop_ids']:
+	print stop_id
+	get_reach_for_stop(stop_id)
 
 # get_reach_for_stop('3096')
 
 def get_routes_for_stop(stop_id):
 	if stop_id in info['stops_info']:
-		return info['stops_info'][stop_id]
+		return info['stops_info'][str(stop_id)]
 	else:
 		return []
 
 def set_time_range(day, starttime, endtime):
 	for route in routes:
-		routesArray[route]['trip']=getTripsForRoute(route, day, starttime, endtime)
+		routesArray[route]['trip']=getTripsForRoute(route, str(day), starttime, endtime)
 	for route in routes:
 		routesArray[route]['timeMatrix']=getRouteTimeMatrix(route)
 	return "done"
 
 def get_reach_for_stop(stop_id):
-	route_list = get_routes_for_stop(stop_id)
+	route_list = get_routes_for_stop(str(stop_id))
 	report={}
 	for route in route_list:
 		reaches = dict((k, v) for k, v in routesArray[route]['timeMatrix'][stop_id].items() if v>0)
@@ -199,7 +199,38 @@ def get_reach_for_stop(stop_id):
 	return sorted(report.iteritems(), key=lambda x: x[1])
 
 
-		
+# search with hoops
+def single_reach_from_stop(stop_id, starttime):
+	global reached_routes, reached_stops, reach_time
+	route_list = get_routes_for_stop(str(stop_id))
+	route_list = list(set(route_list)-set(reached_routes))
+	reached_routes = list(set(route_list) | set(reached_routes)) #add new routes to the reached_routes list
+	reaches={}
+	for route in route_list:
+		reaches = dict((k, v) for k, v in routesArray[route]['timeMatrix'][str(stop_id)].items() if v>0)
+		reaches = dict(reaches.items()+reaches.items()) #each item : {stop: time}
+	for reach in reaches:
+		if not(reach in reached_stops):		# a new stop reached
+			reached_stops.append(reach)
+			reach_time.append([reach, reaches[reach]+starttime])
+	reach_time = sorted(reach_time, key=lambda x: x[1])
 
+
+def reach_search(start_id, depth, transition_time):
+	global reached_routes, reached_stops, reach_time
+	reached_stops=[]
+	reached_routes=[]
+	reach_time=[]
+	reached_stops.append(start_id)
+	single_reach_from_stop(start_id, 0)
+	depth-=1
+	while (depth>0):
+		for reach in reach_time:
+			single_reach_from_stop(reach[0], 5*60)
+		depth -= 1
+	return reach_time
+
+start_id = '3377'; depth=1; transition_time=5*60
+reach_search(start_id, depth, transition_time)
 
 
