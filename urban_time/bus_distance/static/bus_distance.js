@@ -186,6 +186,7 @@ var handleStopClick = function() {
     var marker = displayList[i];
     marker.setMap(null);
     marker.is_displayed = false;
+    marker.
   }
 
   // Mark the clicked marker as displayed.
