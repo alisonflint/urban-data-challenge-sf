@@ -3,7 +3,7 @@ from ajax import endpoint
 from ajax.decorators import login_required
 from ajax.endpoints import ModelEndpoint
 from ajax.exceptions import AJAXError
-from bus_distance.models import test_list, computeDistance
+from bus_distance.models import computeDistance
 
 @csrf_exempt
 def distance(request):
