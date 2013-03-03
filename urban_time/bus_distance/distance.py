@@ -2,6 +2,7 @@ import csv
 import json
 import numpy
 import random
+import time
 
 LARGE=-1
 
@@ -15,6 +16,8 @@ class DistanceMatrix():
     self.updateTimeMatrix()
 
   def updateTimeMatrix(self):
+    TIMING_triptime=0
+    TIMING_matrix=0
     timeMatrix={}
     self.time_matrix = {}
     for s0 in self.stop:
@@ -24,12 +27,15 @@ class DistanceMatrix():
         self.time_matrix[s0][s1]=[]
         timeMatrix[s0][s1]=[]
     for trip_id in self.trip:
+      tc0 = time.time()
       triptime = self.distance_computer.getTripTime(trip_id, self.route)
+      tc1 = time.time(); TIMING_triptime+=(tc1-tc0); tc0=tc1
       for t0 in triptime:
         for t1 in triptime:
           diff = t1[1]-t0[1]
           if (diff>0):
             timeMatrix[t0[0]][t1[0]].append(diff)
+      tc1 = time.time(); TIMING_matrix+=(tc1-tc0); tc0=tc1
     for s0 in self.stop:
       for s1 in self.stop:
         arr=timeMatrix[s0][s1]
@@ -39,6 +45,8 @@ class DistanceMatrix():
           self.time_matrix[s0][s1]=numpy.median(arr)
     for s0 in self.stop:
       self.time_matrix[s0][s0]=0
+    print "triptime uses "+str(TIMING_triptime)
+    print "matrix uses " + str(TIMING_matrix)
 
 class StopDistance:
   def __init__(self, data_file):
@@ -100,22 +108,7 @@ class StopDistance:
       route=int(ele[self.hd['route']])
       self.databyroute[route].append(ele)
 
-    # final out put area
-    # constructing a master array to hold stops and trips for each route at given day and hour range
-    day='1'
-    endtime=12*60*60
-    starttime=0
-
-    # now we calculating the master data set to be saved later
-    self.routesArray={}
-    for route in self.routes:
-      self.routesArray[route] = DistanceMatrix(
-          self.stopsForRoute(route),
-          self.getTripsForRoute(route, day, starttime, endtime),
-          route,
-          self)
-
-  #finding stops for given route
+  # find stops for given route
   def stopsForRoute(self, route_id):
     items=[]
     for ele in self.databyroute[route_id]:
@@ -140,7 +133,7 @@ class StopDistance:
   def getTripsForRoute(self, route, day, starttime, endtime):
     items=[]
     for ele in self.databyroute[route]:
-      if (ele[self.hd['day']]==day and
+      if (ele[self.hd['day']]==str(day) and
           self.time2num(ele[15])>=starttime and
           self.time2num(ele[15])<endtime):
         items.append(int(ele[self.hd['trip_id']]))
@@ -154,16 +147,25 @@ class StopDistance:
     else:
       return []
 
+  #interface function, time unit is second
   def set_time_range(self, day, starttime, endtime):
+    print "enter set_time_range, updating routesArray"
+    self.routesArray={}
     for route in self.routes:
-      self.routesArray[route].trip = self.getTripsForRoute(route, day, starttime, endtime)
-      self.routesArray[route].updateTimeMatrix()
+      self.routesArray[route] = DistanceMatrix(
+          self.stopsForRoute(route),
+          self.getTripsForRoute(route, day, starttime, endtime),
+          route,
+          self)
     return "done"
 
+  #interface function, given stop_d return list of stops reachable and the time to get there
   def get_reach_for_stop(self, stop_id):
+    # pdb.set_trace()
     report={}
     for route in self.get_routes_for_stop(stop_id):
       time_matrix = self.routesArray[route].time_matrix
+      tm = time_matrix
       reaches = dict((k, v) for k, v in time_matrix[stop_id].items() if v>0)
       report = dict(report.items()+reaches.items())
     return sorted(report.iteritems(), key=lambda x: x[1])
