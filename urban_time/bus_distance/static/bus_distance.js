@@ -60,6 +60,10 @@ function loadMap() {
   map.setOptions({styles: styles});
 }
 
+var loadBusinesses = function(businessJson) {
+  businessMap = businessJson;
+};
+
 /**
  * Load the route information.  This is often disconnected from the actual
  * stops but gives a good grounding.
@@ -217,8 +221,7 @@ var handleStopClick = function() {
  */
 var plotStopDistance = function(data) {
   var distance_results = data.data.results;
-  console.log(data);
-  console.log(data.data);
+  var businessList = [];
   distance_results.forEach(function(d) {
     d.stop_id = parseInt(d.stop_id, 10);
     d.seconds = parseInt(d.seconds, 10);
@@ -232,6 +235,13 @@ var plotStopDistance = function(data) {
       // Add the marker as being displayed.
       marker.is_displayed = true;
       displayList.push(marker);
+    }
+
+    var businesses = stop_business_list = businessMap[d.stop_id];
+    for (var b = 0; b < businesses.length; ++b) {
+      var business = businesses[b];
+
+
     }
   });
 

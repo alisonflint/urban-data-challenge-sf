@@ -4,6 +4,7 @@ from bus_distance.distance import StopDistance
 def computeDistance(stopid):
   print "Getting data for: ", stopid
   stops = stop_distance_model.reach_search(stopid, 3, 60)
+  print "Stops acquired"
 
   results = []
   for (stop_id, travel_time) in stops:

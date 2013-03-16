@@ -38,11 +38,36 @@
     </div>
     <div id="map_container"></div>
     <div id="charts">
-      <div id="traveltime-chart">
+      <div id="traveltime">
         <strong>Number of stops based on travel time</strong>
         <a class="reset" href="javascript:traveltimeChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
         <div class="clearfix"></div>
       </div>
+
+      <div id="business-categories">
+        <span>Number of business types</span>
+        <a class="reset" href="javascript:busCategoryPieChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+        <div class="clearfix"></div>
+      </div>
+
+      <div id="business-neighborhoods">
+        <span>Number of businesses in neighboods</span>
+        <a class="reset" href="javascript:busNeighborhoodPieChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+        <div class="clearfix"></div>
+      </div>
+
+      <div id="business-rating">
+        <span>Number of ratings</span>
+        <a class="reset" href="javascript:busRatingChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+        <div class="clearfix"></div>
+      </div>
+
+      <div id="business-reviews">
+        <span>Number of reviews</span>
+        <a class="reset" href="javascript:busReviewChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+        <div class="clearfix"></div>
+      </div>
+
     </div>
     
     </div>
@@ -51,6 +76,7 @@
       setupCharts();
       d3.json("/static/routes.json", loadRoutes);
       d3.json("/static/stops.json", loadStops);
+      d3.json("/static/business_list.json", loadBusinesses);
     </script>
   </body>
 </html>
