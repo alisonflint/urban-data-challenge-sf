@@ -30,19 +30,19 @@ install the following python packages for [Python 2.7][4]:
 
 The easiest way to install all these packages is through [pip][7]:
 
-<code>
+<pre>
   pip install django
   pip install numpy
   pip install decorator
-</code>
+</pre>
 
 Once you've installed all the packages, run the following commands to load up
 the server:
 
-<code>
+<pre>
   cd urban_time
   python manage.py runserver
-</code>
+</pre>
 
 This will load up the web server at [localhost:8000][8], which should now let
 you explore the results of our work.
