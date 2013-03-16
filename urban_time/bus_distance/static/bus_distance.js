@@ -22,7 +22,7 @@ var businessMap = {};
 var traveltimeChart;
 
 function setupCharts() {
-  traveltimeChart = dc.barChart("#traveltime-chart");
+  traveltimeChart = dc.barChart("#traveltime");
 }
 
 function loadMap() {
@@ -237,12 +237,12 @@ var plotStopDistance = function(data) {
       displayList.push(marker);
     }
 
+    /*
     var businesses = stop_business_list = businessMap[d.stop_id];
     for (var b = 0; b < businesses.length; ++b) {
       var business = businesses[b];
-
-
     }
+    */
   });
 
   var distanceFilter = crossfilter(distance_results),
