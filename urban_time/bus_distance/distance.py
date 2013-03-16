@@ -11,8 +11,8 @@
 # python
 # import distance
 # ds=distance.StopDistance('../../orgdata/public-transportation/san-francisco/passenger-count.csv')
-# ds.set_time_range(1, 0, 12*60*60)
-# ds.reach_search(6531, 3, 60)
+# ds.set_time_range(1, 0, 24*60*60)
+# ds.reach_search(3533, 3, 60)
 
 import csv
 import json
@@ -121,7 +121,7 @@ class StopDistance:
       for stop_id_b in stops_array:
         if stop_id_b != stop_id:
           dist = geo_distance(geo_array[stop_id], geo_array[stop_id_b])
-          if dist < 0.05:
+          if dist < 0.1: #this is the walking distance allowed for transfer, in mile
             self.neighbor_stops[stop_id].add(stop_id_b)
 
     # print neighbor_stops
@@ -235,10 +235,11 @@ class StopDistance:
       if not(reach in self.reached_stops):   # a new stop reached
         self.reached_stops.append(reach)
         self.reach_time.append([reach, reaches[reach]+starttime])
-    for neighbor in self.neighbor_stops[stop_id]:
-      if not(neighbor in self.reached_stops):
-        self.reach_time.append([neighbor, starttime+8*60])
-        self.reached_stops.append(neighbor)
+    if stop_id in self.neighbor_stops:
+      for neighbor in self.neighbor_stops[stop_id]:
+        if not(neighbor in self.reached_stops):
+          self.reach_time.append([neighbor, starttime+8*60])
+          self.reached_stops.append(neighbor)
     self.reach_time = sorted(self.reach_time, key=lambda x: x[1])
 
   # depth is number of changes allowed.
