@@ -18,8 +18,14 @@ var displayList = [];
 // The bin size for breaking down the for displaying only a subset of stops near
 // the user's mouse.
 var tileBinSize = 100;
+var businessMap = {};
+var traveltimeChart;
 
-function loadMap(routeJson) {
+function setupCharts() {
+  traveltimeChart = dc.barChart("#traveltime-chart");
+}
+
+function loadMap() {
   var latlng = new google.maps.LatLng(37.780755,-122.419281); 
   var myOptions = {
     zoom: 13,
@@ -186,8 +192,10 @@ var handleStopClick = function() {
     var marker = displayList[i];
     marker.setMap(null);
     marker.is_displayed = false;
-    marker.
+    marker.icon.strokeColor = 'green';
   }
+
+  console.log(d3.select("#controls #start_time").value);
 
   // Mark the clicked marker as displayed.
   displayList = [this];
@@ -208,22 +216,39 @@ var handleStopClick = function() {
  * based on how far away they are.
  */
 var plotStopDistance = function(data) {
-  var distance_result = data.data;
-  for (var i = 0; i < distance_result.destinations.length; ++i) {
-    // Get the destination stop id.
-    var destination_id = parseInt(distance_result.destinations[i], 10);
-    // Get the distance in seconds for the destination.
-    var distance = parseInt(distance_result.travel_time[i], 10);
+  var distance_results = data.data.results;
+  console.log(data);
+  console.log(data.data);
+  distance_results.forEach(function(d) {
+    d.stop_id = parseInt(d.stop_id, 10);
+    d.seconds = parseInt(d.seconds, 10);
 
     // Update the marker.
-    var marker = markerMap[destination_id];
-    marker.icon.strokeColor = stopColor(distance);
-    marker.setMap(map);
+    var marker = markerMap[d.stop_id];
+    if (marker) {
+      marker.icon.strokeColor = stopColor(d.seconds);
+      marker.setMap(map);
 
-    // Add the marker as being displayed.
-    marker.is_displayed = true;
-    displayList.push(marker);
-  }
+      // Add the marker as being displayed.
+      marker.is_displayed = true;
+      displayList.push(marker);
+    }
+  });
+
+  var distanceFilter = crossfilter(distance_results),
+      minuteDimension = distanceFilter.dimension(function(d) { return Math.ceil(d.seconds / 60); });
+      minuteGroup = minuteDimension.group();
+
+  traveltimeChart
+    .width(650)
+    .height(300)
+    .dimension(minuteDimension)
+    .group(minuteGroup)
+    .elasticY(true)
+    .x(d3.scale.linear().domain([0, 100]))
+    .xAxis();
+
+  dc.renderAll();
 };
 
 /**

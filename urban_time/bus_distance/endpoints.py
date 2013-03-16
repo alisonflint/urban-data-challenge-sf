@@ -7,8 +7,4 @@ from bus_distance.models import computeDistance
 
 @csrf_exempt
 def distance(request):
-  (stops, times) = computeDistance(int(request.POST['stopid']))
-  return {
-      "destinations": stops,
-      "travel_time": times
-      }
+  return {"results": computeDistance(int(request.POST['stopid']))}

@@ -1,15 +1,14 @@
 from django.db import models
-import bus_distance.distance.StopDistance  
+from bus_distance.distance import StopDistance  
 
 def computeDistance(stopid):
-  stops = stop_distance_model.get_reach_for_stop(stopid)
+  print "Getting data for: ", stopid
+  stops = stop_distance_model.reach_search(stopid, 3, 60)
 
-  stop_ids = []
-  travel_times = []
+  results = []
   for (stop_id, travel_time) in stops:
-    stop_ids.append(stop_id)
-    travel_times.append(travel_time)
-
-  return (stop_ids, travel_times)
+    results.append({"stop_id": stop_id, "seconds": travel_time})
+  return results
 
 stop_distance_model = StopDistance('bus_distance/static/passenger-count.csv')
+stop_distance_model.set_time_range(1, 0, 24*60*60)
