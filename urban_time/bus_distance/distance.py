@@ -7,14 +7,33 @@
 ## depth is number of transition stops allowed
 # start_stopID = 3377; depth=2; transition_time=5*60   
 # stop_distance_model.reach_search(start_stopID, depth, transition_time)
+# To run in command line:
+# python
+# import distance
+# ds=distance.StopDistance('../../orgdata/public-transportation/san-francisco/passenger-count.csv')
+# ds.set_time_range(1, 0, 12*60*60)
+# ds.reach_search(6531, 3, 60)
 
 import csv
 import json
 import numpy
 import random
 import time
+from math import radians, sin, cos, asin, sqrt, pi, atan2
 
 LARGE=-1
+
+earth_radius_miles = 3956.0
+def geo_distance(geo1, geo2):
+  return abs(geo1[0]-geo2[0])*70+abs(geo1[1]-geo2[1])*55
+
+def geo_distance_true(geo1, geo2):
+  dlat = numpy.radians(geo1[0]) - numpy.radians(geo2[0])
+  dlon = numpy.radians(geo1[1]) - numpy.radians(geo2[1])
+  a = numpy.square(numpy.sin(dlat/2.0)) + cos(radians(geo2[0])) * numpy.cos(numpy.radians(geo1[0])) * numpy.square(numpy.sin(dlon/2.0))
+  great_circle_distance = 2 * numpy.arcsin(numpy.sqrt(a))
+  d = earth_radius_miles * great_circle_distance
+  return d
 
 class DistanceMatrix():
   def __init__(self, stop, trip, route, distance_computer):
@@ -80,6 +99,7 @@ class StopDistance:
 
     # Compute the set of unique routes for each stop.
     stops_array = {}
+    geo_array = {}
     for row in self.data[1:-1]:
       if row[self.hd['day']] == '1':
         stop_id = int(row[self.hd['stop_id']])
@@ -91,6 +111,20 @@ class StopDistance:
           route_set = set()
           stops_array[stop_id] = route_set
         route_set.add(route)
+        geo_array[stop_id]=[float(row[self.hd['latitude']]), float(row[self.hd['longitude']])]
+
+    print len(geo_array)
+    
+    self.neighbor_stops = {}
+    for stop_id in stops_array:
+      self.neighbor_stops[stop_id]=set()
+      for stop_id_b in stops_array:
+        if stop_id_b != stop_id:
+          dist = geo_distance(geo_array[stop_id], geo_array[stop_id_b])
+          if dist < 0.05:
+            self.neighbor_stops[stop_id].add(stop_id_b)
+
+    # print neighbor_stops
 
     # Convert each set of routes into a list.
     for stop_id in stops_array:
@@ -201,9 +235,13 @@ class StopDistance:
       if not(reach in self.reached_stops):   # a new stop reached
         self.reached_stops.append(reach)
         self.reach_time.append([reach, reaches[reach]+starttime])
+    for neighbor in self.neighbor_stops[stop_id]:
+      if not(neighbor in self.reached_stops):
+        self.reach_time.append([neighbor, starttime+8*60])
+        self.reached_stops.append(neighbor)
     self.reach_time = sorted(self.reach_time, key=lambda x: x[1])
 
-  # depth is number of stops allowed.
+  # depth is number of changes allowed.
   def reach_search(self, starting_stop_id, depth, transition_time):
     # global reached_routes, reached_stops, reach_time
     self.reached_stops=[]
@@ -221,3 +259,5 @@ class StopDistance:
 if __name__ == "__main__":
   import sys
   stop_distance = StopDistance(sys.argv[1])
+
+# StopDistance('../../orgdata/public-transportation/san-francisco/passenger-count.csv')
