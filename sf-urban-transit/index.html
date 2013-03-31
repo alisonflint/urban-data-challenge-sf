@@ -1,0 +1,81 @@
+<html>
+  <head>
+    <title>Test DJango AJAX</title>
+<style type="text/css">
+#controls{
+  width:100%
+  height:15%;
+}
+
+#map_container{
+	width:100%;
+	height:85%;
+}
+</style>
+    <link rel="stylesheet" type="text/css"
+          href="http://nickqizhu.github.com/dc.js/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="http://nickqizhu.github.com/dc.js/css/dc.css"/>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://nickqizhu.github.com/dc.js/js/crossfilter.js"></script>
+    <script src="http://nickqizhu.github.com/dc.js/js/dc.js"></script>
+
+    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script src="http://code.jquery.com/jquery-migrate-1.1.1.min.js"></script>
+    <script src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
+    <script src="/js/colorbrewer.js"></script>
+    <script src="/js/bus_distance.js"></script>
+  </head>
+
+  <body>
+    <div id="controls">
+      <div>
+        Start Time: <input type="datetime-local" id="start_time"/>
+        <br/>
+        End Time: <input type="datetime-local" id="end-time"/>
+      </div>
+    </div>
+    <div id="map_container"></div>
+    <div id="charts">
+      <div id="traveltime">
+        <strong>Number of stops based on travel time</strong>
+        <a class="reset" href="javascript:traveltimeChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+        <div class="clearfix"></div>
+      </div>
+
+      <div id="business-categories">
+        <span>Number of business types</span>
+        <a class="reset" href="javascript:busCategoryPieChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+        <div class="clearfix"></div>
+      </div>
+
+      <div id="business-neighborhoods">
+        <span>Number of businesses in neighboods</span>
+        <a class="reset" href="javascript:busNeighborhoodPieChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+        <div class="clearfix"></div>
+      </div>
+
+      <div id="business-rating">
+        <span>Number of ratings</span>
+        <a class="reset" href="javascript:busRatingChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+        <div class="clearfix"></div>
+      </div>
+
+      <div id="business-reviews">
+        <span>Number of reviews</span>
+        <a class="reset" href="javascript:busReviewChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+        <div class="clearfix"></div>
+      </div>
+
+    </div>
+    
+    </div>
+    <script type="text/javascript">
+      loadMap();
+      setupCharts();
+      d3.json("/data/routes.json", loadRoutes);
+      d3.json("/data/stops.json", loadStops);
+      //d3.json("/data/business_list.json", loadBusinesses);
+    </script>
+  </body>
+</html>
