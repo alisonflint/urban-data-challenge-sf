@@ -15,9 +15,9 @@
 # ds.reach_search(3533, 3, 60)
 
 import csv
+import gzip
 import json
 import numpy
-import os 
 import random
 import time
 from math import radians, sin, cos, asin, sqrt, pi, atan2
@@ -83,7 +83,7 @@ class StopDistance:
     # reading data from csv
     self.data=[]
     i=0
-    with open(data_file, 'rb') as csvfile:
+    with gzip.open(data_file, 'rb') as csvfile:
       spamreader = csv.reader(csvfile, delimiter=',')
       for row in spamreader:
         self.data.append([])
@@ -257,14 +257,6 @@ class StopDistance:
       depth -= 1
     return self.reach_time
 
-print "Loading distance resolver"
-distance_resolver = StopDistance(
-    os.path.join(os.path.dirname(__file__),
-    'passenger-count.csv'))
-print "Finished loading distance resolver"
-
 if __name__ == "__main__":
   import sys
   stop_distance = StopDistance(sys.argv[1])
-
-# StopDistance('../../orgdata/public-transportation/san-francisco/passenger-count.csv')

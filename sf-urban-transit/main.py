@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from distance import distance_resolver
-import webapp2
 import os
+import transit_graph as tg
+import webapp2
 
 from django.utils import simplejson
 from google.appengine.ext.webapp import template
@@ -28,10 +28,18 @@ class MainHandler(webapp2.RequestHandler):
 
 class RPCHandler(webapp2.RequestHandler):
   def get(self):
-    print self.request.get('stopid')
-    self.response.write(simplejson.dumps({'results': {}}))
+    distance_list = transit_graph.getShortestDistance(
+        int(self.request.get('stopid')))
+    results = [];
+    for (stop_id, travel_time) in distance_list:
+      results.append({"stop_id": stop_id, "seconds": travel_time})
+    self.response.write(simplejson.dumps(results))
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/rpc', RPCHandler)
 ], debug=True)
+
+transit_graph = tg.TransitGraph(
+    os.path.join(os.path.dirname(__file__),
+    'transit_graph.csv'))

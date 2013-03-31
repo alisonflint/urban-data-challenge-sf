@@ -219,7 +219,7 @@ var handleStopClick = function() {
  * based on how far away they are.
  */
 var plotStopDistance = function(data) {
-  var distance_results = data.results;
+  var distance_results = JSON.parse(data);
   var businessList = [];
   distance_results.forEach(function(d) {
     d.stop_id = parseInt(d.stop_id, 10);
