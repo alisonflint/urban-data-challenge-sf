@@ -2,7 +2,7 @@ import csv
 import os
 import sys
 
-from heapq import heappush, heappop
+from heapq import heappush, heappop, heapify
 
 class TransitGraph:
   def __init__(self, transit_graph_file):
@@ -62,16 +62,15 @@ class TransitGraph:
       for neighbor in stop_list:
         travel_time = stop_list[neighbor]
         alt = travel_time + best_in_q[0]
-        if alt < 0:
-          print alt
-          sys.exit(1)
         if alt < dist[neighbor]:
+          print "Updating with, ", neighbor, alt
           dist[neighbor] = alt
           for i in xrange(0, len(q)):
             if q[i][1] == neighbor:
               del q[i]
+              q.append((dist[neighbor], neighbor))
+              heapify(q)
               break
-          heappush(q, (dist[neighbor], neighbor))
     return [ (stop, time) for (stop, time) in dist.iteritems()
                           if time < sys.float_info.max ]
           

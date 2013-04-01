@@ -21,8 +21,54 @@ var tileBinSize = 100;
 var businessMap = {};
 var traveltimeChart;
 
+var vis;
+var stopGraph;
+
 function setupCharts() {
   traveltimeChart = dc.barChart("#traveltime");
+
+  vis = d3.select("#transit_graph")
+    .append("svg:svg")
+    .attr('w', 1000)
+    .attr('h', 1000);
+
+  stopGraph = d3.layout.force()
+      .size([1000, 1000])
+      .charge(-1);
+}
+
+function loadTransitGraph(transit_graph) {
+  console.log(transit_graph);
+  stopGraph.nodes(transit_graph.nodes)
+    .links(transit_graph.links)
+    .start();
+  
+  var link = vis.selectAll(".link")
+    .data(transit_graph.links)
+    .enter()
+    .append("line")
+    .attr("class", "link");
+
+  var node = vis.selectAll('.node')
+    .data(transit_graph.nodes)
+    .enter()
+    .append('circle')
+    .attr('class', 'node')
+    .attr('r', 5)
+    .call(stopGraph.drag);
+
+  node.append("title")
+    .text(function(d) { return d.name; });
+
+  stopGraph.on("tick", function() {
+    link.attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+    node.attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
+  });
 }
 
 function loadMap() {
@@ -204,6 +250,8 @@ var handleStopClick = function() {
   // Mark the clicked marker as displayed.
   displayList = [this];
   this.is_displayed = true;
+
+  console.log("requesting: " + this.stopid);
 
   // Get the distance from this stop to all other reachable stops.
   $.ajax({

@@ -1,22 +1,12 @@
 <html>
   <head>
     <title>Test DJango AJAX</title>
-<style type="text/css">
-#controls{
-  width:100%
-  height:15%;
-}
-
-#map_container{
-	width:100%;
-	height:85%;
-}
-</style>
     <link rel="stylesheet" type="text/css"
           href="http://nickqizhu.github.com/dc.js/css/bootstrap.min.css"/>
     <link rel="stylesheet" type="text/css"
           href="http://nickqizhu.github.com/dc.js/css/dc.css"/>
-    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/main.css"/>
+    <script src="http://d3js.org/d3.v3.js"></script>
     <script src="http://nickqizhu.github.com/dc.js/js/crossfilter.js"></script>
     <script src="http://nickqizhu.github.com/dc.js/js/dc.js"></script>
 
@@ -69,12 +59,15 @@
 
     </div>
     
+    <div id="transit_graph">
+    </div>
     </div>
     <script type="text/javascript">
       loadMap();
       setupCharts();
       d3.json("/data/routes.json", loadRoutes);
       d3.json("/data/stops.json", loadStops);
+      //d3.json("/data/force_graph.json", loadTransitGraph);
       //d3.json("/data/business_list.json", loadBusinesses);
     </script>
   </body>
